@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SWAM Online Hub</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   SWAM ONLINE HUB v4 — Müller-Brockmann Swiss Grid System
+   Modular grid · 12 columns · 8px baseline · flush-left grotesque
+   Palette: white / near-black / SWAM cyan (one accent only)
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cols:    12;
+  --bl:      8px;            /* baseline unit */
+  --lh:      24px;           /* leading = 3 x baseline */
+  --gutter:  24px;
+  --margin:  48px;
+  --maxw:    1440px;
+
+  --paper:     #FFFFFF;
+  --paper-off: #FAFAFA;
+  --ink:       #111315;
+  --ink-soft:  #5B6066;
+  --ink-faint: #9A9FA6;
+  --line:      #E4E5E7;
+  --line-strong: #D0D2D6;
+
+  --accent:     #0095B6;   /* SWAM cyan — the one accent */
+  --accent-ink: #FFFFFF;
+  --accent-tint: #EAF6F9;
+  --danger:     #C81E3A;
+  --success:    #1A7F4E;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+
+  --font:      "Inter", system-ui, sans-serif;
+  --font-mono: "Space Mono", "IBM Plex Mono", monospace;
+
+  --transition: .15s ease;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: var(--lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ============================================================
+   MASTHEAD — flush-left, grotesque, mono kicker
+   ============================================================ */
+header {
+  border-bottom: 1px solid var(--ink);
+  flex-shrink: 0;
+}
+.header-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--bl)*4 var(--margin);
+  padding: 32px var(--margin) 24px;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  align-items: end;
+}
+
+.header-logo-block { grid-column: 1 / 5; display: flex; align-items: center; gap: 16px; }
+.header-logo-block img { height: 34px; object-fit: contain; flex-shrink: 0; }
+.header-logo-divider { width: 1px; height: 28px; background: var(--line-strong); }
+.masthead { font-size: 22px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; color: var(--ink); }
+.header-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-top: 4px; }
+
+.header-search-block { grid-column: 5 / 9; display: flex; align-items: flex-end; }
+.header-search { width: 100%; position: relative; }
+.header-search input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 6px 28px 6px 0;
+  color: var(--ink);
+  font-family: var(--font); font-size: 13px; outline: none;
+  transition: border-color var(--transition);
+}
+.header-search input::placeholder { color: var(--ink-faint); }
+.header-search input:focus { border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+.search-clear {
+  position: absolute; right: 0; bottom: 6px;
+  background: none; border: none; color: var(--ink-faint); cursor: pointer;
+  font-size: 14px; padding: 2px; display: none; font-family: var(--font-mono);
+}
+.search-clear.visible { display: flex; }
+
+.header-stats-block { grid-column: 9 / 11; display: flex; gap: 0; align-items: flex-end; justify-content: flex-end; }
+.header-stats { display: flex; gap: 28px; }
+.stat-chip { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-chip b { font-size: 26px; font-weight: 800; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat-chip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
+
+.header-actions-block { grid-column: 11 / 13; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+.sync-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 4px 0;
+  color: var(--ink-faint);
+}
+.sync-badge.syncing { color: var(--accent); }
+.sync-badge.ok { color: var(--success); }
+.sync-badge.err { color: var(--danger); }
+.sync-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.sync-badge.syncing .sync-dot { animation: pulse .8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ============================================================
+   TABS BAR — flush-left text tabs, underline active state
+   ============================================================ */
+.tabs-bar-outer { border-bottom: 1px solid var(--line); background: var(--paper-off); }
+.tabs-bar {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 0 var(--margin);
+  display: flex; align-items: stretch; gap: 0;
+  overflow-x: auto;
+}
+.tabs-bar::-webkit-scrollbar { height: 0; }
+
+.tab-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 18px;
+  font-size: 12px; font-weight: 600; letter-spacing: .01em;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.tab-pill:hover { color: var(--ink); background: rgba(0,0,0,.02); }
+.tab-pill.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+.tab-pill-dot { display: none; }
+.tab-pill-count {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 400;
+  color: var(--ink-faint);
+}
+.tab-pill.active .tab-pill-count { color: var(--accent); }
+
+.tab-pill-manage {
+  margin-left: auto;
+  color: var(--ink-faint);
+}
+.tab-pill-manage:hover { color: var(--ink); }
+
+/* ============================================================
+   SUBTABS BAR
+   ============================================================ */
+.subtabs-bar-outer { border-bottom: 1px solid var(--line); }
+.subtabs-bar-outer.empty { display: none; }
+.subtabs-bar {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 0 var(--margin);
+  display: flex; align-items: center; gap: 4px;
+  overflow-x: auto;
+  min-height: 38px;
+}
+.subtabs-bar::-webkit-scrollbar { height: 0; }
+.subtabs-bar.empty { display: none; }
+
+.subtab-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px; letter-spacing: .02em;
+  color: var(--ink-faint);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition);
+  flex-shrink: 0;
+}
+.subtab-pill:hover { color: var(--ink-soft); }
+.subtab-pill.active { color: var(--accent); font-weight: 700; }
+.subtab-pill-count { opacity: .7; }
+
+/* ============================================================
+   MAIN DASHBOARD — modular grid
+   ============================================================ */
+.dashboard-wrap { flex: 1; }
+.dashboard-inner {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 40px var(--margin) 80px;
+}
+
+.dashboard-header-row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  align-items: baseline;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ink);
+}
+.dashboard-header-row h2 {
+  grid-column: 1 / 8;
+  font-size: 32px; font-weight: 800; letter-spacing: -.015em; color: var(--ink); line-height: 1.1;
+}
+.dashboard-header-row .count-badge {
+  grid-column: 8 / 11;
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint);
+  text-align: right;
+}
+.dashboard-header-row .btn-primary {
+  grid-column: 11 / 13;
+  justify-self: end;
+}
+
+/* GRID OF CARDS — 12-col grid, cards span 4 columns (3 per row) */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  row-gap: 32px;
+}
+
+/* DASHBOARD CARD — flush, hairline border, numeral-style index */
+.dash-card {
+  grid-column: span 4;
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color var(--transition), transform var(--transition);
+  display: flex; flex-direction: column;
+  min-height: 220px;
+}
+.dash-card:hover { border-top-color: var(--accent); transform: translateY(-2px); }
+
+.dash-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+.dash-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.dash-card-kicker {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700;
+}
+.dash-card-actions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--transition); }
+.dash-card:hover .dash-card-actions { opacity: 1; }
+
+.dash-card-subject {
+  font-size: 16px; font-weight: 700; color: var(--ink);
+  margin-bottom: 8px; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.dash-card-to {
+  font-size: 11.5px; color: var(--ink-faint); margin-bottom: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--font-mono);
+}
+.dash-card-to b { color: var(--ink-soft); font-weight: 500; }
+.dash-card-preview {
+  font-size: 12.5px; color: var(--ink-soft); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  flex: 1; margin-bottom: 14px;
+}
+.dash-card-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--line);
+}
+.dash-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.ctx-tag {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .04em; text-transform: uppercase;
+  padding: 3px 7px; border: 1px solid currentColor; color: var(--ink-soft);
+}
+.dash-card-date { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; }
+
+/* ============================================================
+   EMPTY / LOADER
+   ============================================================ */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 100px 20px; color: var(--ink-faint); text-align: center; gap: 10px;
+  border: 1px dashed var(--line-strong);
+}
+.empty-state .empty-icon { font-size: 32px; margin-bottom: 6px; opacity: .35; }
+.empty-state p { font-size: 14px; color: var(--ink-soft); }
+.empty-state small { font-family: var(--font-mono); font-size: 10.5px; }
+
+.loader-wrap { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; padding: 100px 20px; gap: 12px; color: var(--ink-faint); }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   DETAIL MODAL — full overlay, editorial document style
+   ============================================================ */
+.detail-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17,19,21,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 900; opacity: 0; pointer-events: none; transition: opacity .18s;
+  padding: 32px;
+}
+.detail-modal-overlay.open { opacity: 1; pointer-events: all; }
+.detail-modal {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  width: 100%; max-width: 720px; max-height: 88vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.25);
+  transform: translateY(16px);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+  overflow: hidden;
+}
+.detail-modal-overlay.open .detail-modal { transform: none; }
+.detail-modal-band { height: 4px; width: 100%; flex-shrink: 0; background: var(--accent); }
+.detail-modal-header { padding: 28px 32px 20px; display: flex; align-items: flex-start; gap: 16px; flex-shrink: 0; border-bottom: 1px solid var(--line); }
+.detail-modal-icon { display: none; }
+.detail-modal-header-text { flex: 1; min-width: 0; }
+.detail-modal-header-text h3 { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1.25; margin-bottom: 10px; letter-spacing: -.01em; }
+.detail-modal-header-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.detail-modal-close {
+  background: transparent; border: 1px solid var(--line-strong);
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; color: var(--ink-faint); flex-shrink: 0;
+  transition: all var(--transition);
+}
+.detail-modal-close:hover { border-color: var(--ink); color: var(--ink); }
+
+.detail-modal-body { flex: 1; overflow-y: auto; padding: 24px 32px 28px; }
+.detail-modal-body::-webkit-scrollbar { width: 4px; }
+.detail-modal-body::-webkit-scrollbar-thumb { background: var(--line-strong); }
+
+.field-group { margin-bottom: 22px; }
+.field-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--accent);
+  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px;
+}
+.field-value { font-size: 13.5px; color: var(--ink); line-height: 1.65; }
+.field-value.body-text {
+  background: var(--paper-off); border: 1px solid var(--line); border-radius: 0;
+  padding: 16px 18px; white-space: pre-wrap; font-size: 13.5px; font-family: var(--font);
+  max-height: 280px; overflow-y: auto;
+}
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid currentColor;
+}
+.tag-block { color: var(--accent); }
+.tag-sub { color: var(--ink-soft); }
+.detail-modal-actions { padding: 18px 32px; border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+
+/* ============================================================
+   BUTTONS — flat, square, mono labels on secondary actions
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  padding: 9px 16px; border-radius: 0;
+  border: 1px solid transparent; cursor: pointer; transition: all var(--transition);
+  white-space: nowrap; letter-spacing: .01em;
+}
+.btn:disabled { opacity: .4; cursor: default; }
+.btn-primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.btn-secondary { background: var(--paper); color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--ink); }
+.btn-danger { background: var(--paper); color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: var(--danger); color: #fff; }
+.btn-ghost { background: transparent; color: var(--ink-faint); border-color: transparent; }
+.btn-ghost:hover:not(:disabled) { color: var(--ink); background: var(--paper-off); }
+.btn-icon { padding: 7px; font-size: 12px; }
+.btn-success { background: var(--paper); color: var(--success); border-color: var(--success); }
+.btn-success:hover:not(:disabled) { background: var(--success); color: #fff; }
+
+.dash-card-actions .btn-icon { background: var(--paper); border: 1px solid var(--line); padding: 5px 6px; font-size: 10.5px; }
+
+/* ============================================================
+   MODAL (form / blocks manager / confirm)
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17,19,21,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .18s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  width: 100%; max-width: 600px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.25);
+  transform: translateY(12px);
+  transition: transform .2s cubic-bezier(.2,.8,.2,1);
+}
+.modal-overlay.open .modal { transform: none; }
+.modal-header { padding: 22px 28px; border-bottom: 1px solid var(--ink); display: flex; align-items: center; gap: 10px; }
+.modal-header h3 { font-size: 15px; font-weight: 800; flex: 1; letter-spacing: -.005em; }
+.modal-body { padding: 26px 28px; overflow-y: auto; flex: 1; }
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--line-strong); }
+.modal-footer { padding: 18px 28px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ============================================================
+   FORM — underline inputs, mono labels
+   ============================================================ */
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  color: var(--ink-soft); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em;
+}
+.form-label .req { color: var(--danger); margin-left: 2px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  padding: 10px 12px; color: var(--ink);
+  font-family: var(--font); font-size: 13px; outline: none;
+  transition: border-color var(--transition);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--ink-faint); }
+.form-textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-hint { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); margin-top: 6px; }
+.form-error { font-family: var(--font-mono); font-size: 10px; color: var(--danger); margin-top: 6px; display: none; }
+.form-error.visible { display: block; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 2000; }
+.toast {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 0;
+  padding: 12px 18px; font-size: 12px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  display: flex; align-items: center; gap: 10px;
+  animation: slideIn .2s ease; min-width: 240px;
+  border-left: 3px solid var(--accent);
+}
+.toast.success { border-left-color: var(--success); }
+.toast.error   { border-left-color: var(--danger); }
+.toast.info    { border-left-color: var(--accent); }
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
+
+.confirm-dialog { max-width: 420px; }
+
+mark { background: var(--accent-tint); color: var(--accent); font-weight: 700; }
+
+/* ============================================================
+   CONTACTS DIRECTORY — Swiss editorial cards
+   ============================================================ */
+.contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  row-gap: 32px;
+}
+
+.org-card {
+  grid-column: span 6;
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+  transition: border-color var(--transition);
+}
+.org-card:hover { border-top-color: var(--accent); }
+
+.org-card-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+.org-card-icon { display: none; }
+.org-card-name { flex: 1; font-size: 17px; font-weight: 800; color: var(--ink); min-width: 0; letter-spacing: -.01em; }
+.org-card-actions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--transition); }
+.org-card:hover .org-card-actions { opacity: 1; }
+
+.org-card-body { padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+.contact-row {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.contact-row.escalation { border-left: 2px solid var(--danger); padding-left: 14px; }
+.contact-row:not(.escalation) { border-left: 2px solid var(--line-strong); padding-left: 14px; }
+.contact-avatar { display: none; }
+.contact-info { flex: 1; min-width: 0; }
+.contact-role {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent); margin-bottom: 4px;
+}
+.contact-row.escalation .contact-role { color: var(--danger); }
+.contact-name { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.contact-name.empty { color: var(--ink-faint); font-weight: 400; font-style: italic; }
+.contact-detail { font-size: 11.5px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); }
+.contact-detail + .contact-detail { margin-top: 3px; }
+.contact-detail a { color: var(--ink-soft); text-decoration: none; }
+.contact-detail a:hover { color: var(--accent); text-decoration: underline; }
+
+.org-form-section { margin-bottom: 20px; padding: 16px; border: 1px solid var(--line); }
+.org-form-section.escalation { border-color: rgba(200,30,58,.3); background: rgba(200,30,58,.02); }
+.org-form-section-title {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.org-form-section.escalation .org-form-section-title { color: var(--danger); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1100px) {
+  .header-inner { grid-template-columns: repeat(8, 1fr); }
+  .header-logo-block { grid-column: 1 / 4; }
+  .header-search-block { grid-column: 4 / 7; }
+  .header-stats-block { display: none; }
+  .header-actions-block { grid-column: 7 / 9; }
+  .dash-card { grid-column: span 6; }
+  .org-card { grid-column: span 12; }
+}
+@media (max-width: 760px) {
+  :root { --margin: 20px; }
+  .header-inner { grid-template-columns: 1fr 1fr; padding: 20px var(--margin) 16px; gap: 12px; }
+  .header-logo-block { grid-column: 1 / 2; }
+  .header-search-block { display: none; }
+  .header-actions-block { grid-column: 2 / 3; }
+  .tabs-bar, .subtabs-bar { padding: 0 var(--margin); }
+  .dashboard-inner { padding: 24px var(--margin) 60px; }
+  .dashboard-header-row { grid-template-columns: 1fr; gap: 10px; }
+  .dashboard-header-row h2 { grid-column: 1; font-size: 24px; }
+  .dashboard-header-row .count-badge { grid-column: 1; text-align: left; }
+  .dashboard-header-row .btn-primary { grid-column: 1; justify-self: start; }
+  .cards-grid, .contacts-grid { grid-template-columns: 1fr; }
+  .dash-card, .org-card { grid-column: span 1; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <div class="header-logo-block">
+        <img src="data:image/png;base64,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" alt="SWAM" />
+        <div class="header-logo-divider"></div>
+        <div>
+          <div class="masthead">SWAM Online Hub</div>
+          <div class="header-kicker">Communications &mdash; Referentiel</div>
+        </div>
+      </div>
+      <div class="header-search-block">
+        <div class="header-search">
+          <input type="text" id="searchInput" placeholder="Rechercher par destinataire, objet, contact ou contenu..." />
+          <button class="search-clear btn btn-ghost btn-icon" id="searchClear">&times;</button>
+        </div>
+      </div>
+      <div class="header-stats-block">
+        <div class="header-stats" id="headerStats"></div>
+      </div>
+      <div class="header-actions-block">
+        <div class="sync-badge" id="syncBadge">
+          <div class="sync-dot"></div>
+          <span id="syncLabel">Connexion...</span>
+        </div>
+        <button class="btn btn-primary" id="btnNewComm">+ Nouvelle</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-bar-outer">
+    <div class="tabs-bar" id="tabsBar"></div>
+  </div>
+  <div class="subtabs-bar-outer empty" id="subtabsBarOuter">
+    <div class="subtabs-bar" id="subtabsBar"></div>
+  </div>
+
+  <main class="dashboard-wrap">
+    <div class="dashboard-inner">
+      <div class="dashboard-header-row" id="dashboardHeader"></div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- DETAIL MODAL (full overlay) -->
+<div class="detail-modal-overlay" id="detailModalOverlay">
+  <div class="detail-modal">
+    <div class="detail-modal-band" id="detailModalBand"></div>
+    <div class="detail-modal-header">
+      <div class="detail-modal-icon" id="detailModalIcon"></div>
+      <div class="detail-modal-header-text">
+        <h3 id="detailModalTitle"></h3>
+        <div class="detail-modal-header-tags" id="detailModalTags"></div>
+      </div>
+      <div class="detail-modal-close" id="detailModalClose">&times;</div>
+    </div>
+    <div class="detail-modal-body" id="detailModalBody"></div>
+    <div class="detail-modal-actions">
+      <button class="btn btn-primary" id="detailEdit">Modifier</button>
+      <button class="btn btn-success" id="detailCopy">Copier</button>
+      <button class="btn btn-danger" id="detailDel">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMM FORM MODAL -->
+<div class="modal-overlay" id="modalComm">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalCommTitle">Nouvelle communication</h3>
+      <button class="btn btn-ghost btn-icon" id="closeModalComm">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Bloc principal <span class="req">*</span></label>
+          <select class="form-select" id="formBlockId"></select>
+          <div class="form-error" id="errBlock">Choisissez un bloc.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sous-bloc <span class="req">*</span></label>
+          <select class="form-select" id="formSubId" disabled></select>
+          <div class="form-error" id="errSub">Choisissez un sous-bloc.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Destinataires <span class="req">*</span></label>
+        <input class="form-input" id="formTo" type="text" placeholder="ex: equipe@swam.ma, direction@swam.ma" />
+        <div class="form-hint">Separez plusieurs destinataires par une virgule.</div>
+        <div class="form-error" id="errTo">Renseignez au moins un destinataire.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Objet du mail <span class="req">*</span></label>
+        <input class="form-input" id="formSubject" type="text" placeholder="ex: [Online] Incident paiement carte" />
+        <div class="form-error" id="errSubject">Renseignez l'objet.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Corps du message <span class="req">*</span></label>
+        <textarea class="form-textarea" id="formBody" rows="8" placeholder="Redigez votre message ici..."></textarea>
+        <div class="form-error" id="errBody">Redigez le corps du message.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelModalComm">Annuler</button>
+      <button class="btn btn-primary" id="saveComm">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCKS MANAGER MODAL -->
+<div class="modal-overlay" id="modalBlocks">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Gerer les blocs et sous-blocs</h3>
+      <button class="btn btn-ghost btn-icon" id="closeModalBlocks">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBlocksBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="closeModalBlocksFooter">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORGANIZATION (CONTACTS) FORM MODAL -->
+<div class="modal-overlay" id="modalOrg">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h3 id="modalOrgTitle">Nouvelle organisation</h3>
+      <button class="btn btn-ghost btn-icon" id="closeModalOrg">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nom de l&#39;organisation <span class="req">*</span></label>
+        <input class="form-input" id="formOrgName" type="text" placeholder="ex: Banque Populaire, CIH Bank..." />
+        <div class="form-error" id="errOrgName">Renseignez le nom de l&#39;organisation.</div>
+      </div>
+
+      <div class="org-form-section">
+        <div class="org-form-section-title">Contact principal 1</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nom et prenom</label><input class="form-input" id="formC1Name" type="text" placeholder="Nom complet" /></div>
+          <div class="form-group"><label class="form-label">Telephone</label><input class="form-input" id="formC1Phone" type="text" placeholder="06 XX XX XX XX" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="formC1Email" type="email" placeholder="nom@domaine.ma" /></div>
+      </div>
+
+      <div class="org-form-section">
+        <div class="org-form-section-title">Contact principal 2</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nom et prenom</label><input class="form-input" id="formC2Name" type="text" placeholder="Nom complet" /></div>
+          <div class="form-group"><label class="form-label">Telephone</label><input class="form-input" id="formC2Phone" type="text" placeholder="06 XX XX XX XX" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="formC2Email" type="email" placeholder="nom@domaine.ma" /></div>
+      </div>
+
+      <div class="org-form-section escalation">
+        <div class="org-form-section-title">Contact d&#39;escalade</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nom et prenom</label><input class="form-input" id="formEscName" type="text" placeholder="Nom complet" /></div>
+          <div class="form-group"><label class="form-label">Telephone</label><input class="form-input" id="formEscPhone" type="text" placeholder="06 XX XX XX XX" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="formEscEmail" type="email" placeholder="nom@domaine.ma" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelModalOrg">Annuler</button>
+      <button class="btn btn-primary" id="saveOrg">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal confirm-dialog">
+    <div class="modal-header">
+      <h3 id="confirmTitle">Confirmation</h3>
+      <button class="btn btn-ghost btn-icon" id="closeConfirm">&times;</button>
+    </div>
+    <div class="modal-body"><p id="confirmMessage"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="confirmCancel">Annuler</button>
+      <button class="btn btn-danger" id="confirmOk">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================================================
+   SWAM ONLINE HUB v2 — App Logic (Dashboard Grid)
+   ============================================================ */
+
+const SUPABASE_URL = "https://zvbhwepsfybbpozuoxax.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2Ymh3ZXBzZnliYnBvenVveGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjI3NzAsImV4cCI6MjA5NzQ5ODc3MH0.FZ42q6Wx0lwKNJ7tE-U8lkwlCApantTF-2xE3WmF2OY";
+
+function apiUrl(path) {
+  return SUPABASE_URL + "/rest/v1/" + path;
+}
+
+const HEADERS = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": "Bearer " + SUPABASE_KEY,
+  "Content-Type": "application/json",
+  "Prefer": "return=representation"
+};
+
+async function sbGet(table, params) {
+  const query = params ? ("?" + params) : "";
+  const r = await fetch(apiUrl(table + query), { headers: HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(table, body) {
+  const r = await fetch(apiUrl(table), { method: "POST", headers: HEADERS, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, id, body) {
+  const r = await fetch(apiUrl(table + "?id=eq." + id), { method: "PATCH", headers: HEADERS, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table, filter) {
+  const r = await fetch(apiUrl(table + "?" + filter), { method: "DELETE", headers: HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/* ============================================================
+   BLOCK COLORS — SWAM palette
+   ============================================================ */
+const BLOCK_COLORS = ["#0095B6", "#6B3FA0", "#00C2CB", "#F59E0B", "#E84B6A", "#22C55E", "#F97316", "#3D7DD8"];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let data = { blocks: [], subs: [], comms: [], orgs: [] };
+let state = {
+  view: "comms", // "comms" | "contacts"
+  selectedBlockId: null,
+  selectedSubId: null,
+  selectedCommId: null,
+  searchQuery: "",
+  editingCommId: null,
+  editingOrgId: null,
+  loading: true
+};
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function fmtDate(ts) {
+  const d = new Date(Number(ts));
+  const datePart = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+  const timePart = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return datePart + " " + timePart;
+}
+function getBlock(id) { return data.blocks.find(function(b) { return b.id === id; }); }
+function getSub(subId) { return data.subs.find(function(s) { return s.id === subId; }); }
+function getComm(id) { return data.comms.find(function(c) { return c.id === id; }); }
+function getOrg(id) { return data.orgs.find(function(o) { return o.id === id; }); }
+function nextColor() {
+  const used = data.blocks.map(function(b) { return b.color; });
+  const free = BLOCK_COLORS.find(function(c) { return used.indexOf(c) === -1; });
+  return free || BLOCK_COLORS[data.blocks.length % BLOCK_COLORS.length];
+}
+function blockIndex(block) {
+  if (!block) return "00";
+  const idx = data.blocks.indexOf(block);
+  return String(idx + 1).padStart(2, "0");
+}
+
+/* ============================================================
+   SYNC STATUS BADGE
+   ============================================================ */
+function setSyncStatus(status, label) {
+  const badge = document.getElementById("syncBadge");
+  const lbl = document.getElementById("syncLabel");
+  badge.className = "sync-badge " + status;
+  lbl.textContent = label;
+}
+
+/* ============================================================
+   LOAD ALL DATA
+   ============================================================ */
+async function loadAll() {
+  setSyncStatus("syncing", "Chargement...");
+  try {
+    const results = await Promise.all([
+      sbGet("blocks", "order=position.asc"),
+      sbGet("subs", "order=position.asc"),
+      sbGet("comms", "order=created_at.desc"),
+      sbGet("organizations", "order=position.asc")
+    ]);
+    data.blocks = results[0];
+    data.subs = results[1];
+    data.comms = results[2];
+    data.orgs = results[3];
+    state.loading = false;
+    setSyncStatus("ok", "Synchronise");
+    setTimeout(function() { setSyncStatus("ok", "En ligne"); }, 2000);
+    renderAll();
+  } catch (e) {
+    setSyncStatus("err", "Erreur de connexion");
+    state.loading = false;
+    renderAll();
+    toast("Erreur de connexion a Supabase.", "error");
+  }
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type) {
+  type = type || "info";
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  const icon = type === "success" ? "OK" : type === "error" ? "X" : "i";
+  el.innerHTML = "<span>" + icon + "</span><span>" + msg + "</span>";
+  document.getElementById("toastContainer").appendChild(el);
+  setTimeout(function() {
+    el.style.animation = "fadeOut .3s ease forwards";
+    setTimeout(function() { el.remove(); }, 300);
+  }, 2800);
+}
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+let confirmResolve = null;
+function showConfirm(title, message) {
+  return new Promise(function(resolve) {
+    confirmResolve = resolve;
+    document.getElementById("confirmTitle").textContent = title;
+    document.getElementById("confirmMessage").textContent = message;
+    openModal("modalConfirm");
+  });
+}
+document.getElementById("confirmOk").onclick = function() {
+  closeModal("modalConfirm");
+  if (confirmResolve) confirmResolve(true);
+};
+document.getElementById("confirmCancel").onclick = function() {
+  closeModal("modalConfirm");
+  if (confirmResolve) confirmResolve(false);
+};
+document.getElementById("closeConfirm").onclick = function() {
+  closeModal("modalConfirm");
+  if (confirmResolve) confirmResolve(false);
+};
+
+/* ============================================================
+   MODAL HELPERS
+   ============================================================ */
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".modal-overlay").forEach(function(ov) {
+  ov.addEventListener("click", function(e) {
+    if (e.target === ov) closeModal(ov.id);
+  });
+});
+document.getElementById("detailModalOverlay").addEventListener("click", function(e) {
+  if (e.target === e.currentTarget) closeDetailModal();
+});
+
+/* ============================================================
+   TABS BAR (main blocks)
+   ============================================================ */
+function renderTabsBar() {
+  const bar = document.getElementById("tabsBar");
+  const allActive = state.view === "comms" && !state.selectedBlockId;
+  let html = '<div class="tab-pill ' + (allActive ? "active" : "") + '" id="tabAll" ' +
+    (allActive ? 'style="border-bottom-color:var(--accent);"' : '') + '>' +
+    'Toutes' +
+    '<span class="tab-pill-count">' + data.comms.length + '</span>' +
+    '</div>';
+
+  data.blocks.forEach(function(block) {
+    const cnt = data.comms.filter(function(c) { return c.block_id === block.id; }).length;
+    const active = state.view === "comms" && state.selectedBlockId === block.id;
+    html += '<div class="tab-pill ' + (active ? "active" : "") + '" data-bid="' + block.id + '" ' +
+      'style="' + (active ? 'border-bottom-color:' + block.color + ';color:' + block.color + ';' : '') + '">' +
+      esc(block.label) +
+      '<span class="tab-pill-count">' + cnt + '</span>' +
+      '</div>';
+  });
+
+  const contactsActive = state.view === "contacts";
+  html += '<div class="tab-pill ' + (contactsActive ? "active" : "") + '" id="tabContacts" ' +
+    (contactsActive ? 'style="border-bottom-color:var(--accent);"' : '') + '>' +
+    'Contacts' +
+    '<span class="tab-pill-count">' + data.orgs.length + '</span>' +
+    '</div>';
+
+  html += '<div class="tab-pill tab-pill-manage" id="tabManage">Gerer</div>';
+
+  bar.innerHTML = html;
+
+  document.getElementById("tabAll").addEventListener("click", function() {
+    state.view = "comms";
+    state.selectedBlockId = null;
+    state.selectedSubId = null;
+    renderAll();
+    document.getElementById("btnNewComm").textContent = "+ Nouvelle";
+  });
+  bar.querySelectorAll(".tab-pill[data-bid]").forEach(function(el) {
+    el.addEventListener("click", function() {
+      const bid = el.dataset.bid;
+      state.view = "comms";
+      state.selectedBlockId = state.selectedBlockId === bid && state.view === "comms" ? null : bid;
+      state.selectedSubId = null;
+      renderAll();
+      document.getElementById("btnNewComm").textContent = "+ Nouvelle";
+    });
+  });
+  document.getElementById("tabContacts").addEventListener("click", function() {
+    state.view = "contacts";
+    renderAll();
+    document.getElementById("btnNewComm").textContent = "+ Nouveau contact";
+  });
+  document.getElementById("tabManage").addEventListener("click", function() {
+    if (state.view === "contacts") openOrgsHelpToast();
+    else openBlocksModal();
+  });
+}
+
+function openOrgsHelpToast() {
+  toast("Utilisez + Nouveau contact pour ajouter une organisation.", "info");
+}
+
+/* ============================================================
+   SUBTABS BAR (sub-blocks of selected block)
+   ============================================================ */
+function renderSubtabsBar() {
+  const bar = document.getElementById("subtabsBar");
+  const outer = document.getElementById("subtabsBarOuter");
+  if (state.view !== "comms" || !state.selectedBlockId) {
+    bar.classList.add("empty");
+    outer.classList.add("empty");
+    bar.innerHTML = "";
+    return;
+  }
+  const block = getBlock(state.selectedBlockId);
+  const blockSubs = data.subs.filter(function(s) { return s.block_id === state.selectedBlockId; });
+  if (!block || !blockSubs.length) {
+    bar.classList.add("empty");
+    outer.classList.add("empty");
+    bar.innerHTML = "";
+    return;
+  }
+  bar.classList.remove("empty");
+  outer.classList.remove("empty");
+
+  let html = '<div class="subtab-pill ' + (!state.selectedSubId ? "active" : "") + '" id="subtabAll">Tous les sous-blocs</div>';
+  blockSubs.forEach(function(sub) {
+    const cnt = data.comms.filter(function(c) { return c.sub_id === sub.id; }).length;
+    const active = state.selectedSubId === sub.id;
+    html += '<div class="subtab-pill ' + (active ? "active" : "") + '" data-sid="' + sub.id + '">' +
+      esc(sub.label) +
+      (cnt ? ' <span class="subtab-pill-count">(' + cnt + ')</span>' : '') +
+      '</div>';
+  });
+  bar.innerHTML = html;
+
+  document.getElementById("subtabAll").addEventListener("click", function() {
+    state.selectedSubId = null;
+    renderAll();
+  });
+  bar.querySelectorAll(".subtab-pill[data-sid]").forEach(function(el) {
+    el.addEventListener("click", function() {
+      state.selectedSubId = el.dataset.sid;
+      renderAll();
+    });
+  });
+}
+
+/* ============================================================
+   DASHBOARD HEADER (title + count + new button)
+   ============================================================ */
+function renderDashboardHeader() {
+  const header = document.getElementById("dashboardHeader");
+
+  if (state.view === "contacts") {
+    const cnt = data.orgs.length;
+    header.innerHTML = '<h2>Referentiel de contacts</h2>' +
+      '<span class="count-badge">' + cnt + ' organisation' + (cnt > 1 ? "s" : "") + '</span>' +
+      '<button class="btn btn-primary" id="btnNewOrgCtx" style="margin-left:auto;">+ Nouveau contact</button>';
+    document.getElementById("btnNewOrgCtx").addEventListener("click", function() { openOrgModal(); });
+    return;
+  }
+
+  const q = state.searchQuery;
+  if (q) {
+    const cnt = getFilteredComms().length;
+    header.innerHTML = '<h2>Resultats pour "' + esc(q) + '"</h2>' +
+      '<span class="count-badge">' + cnt + ' resultat' + (cnt > 1 ? "s" : "") + '</span>';
+    return;
+  }
+
+  const block = state.selectedBlockId ? getBlock(state.selectedBlockId) : null;
+  const sub = state.selectedSubId ? getSub(state.selectedSubId) : null;
+  const cnt = getFilteredComms().length;
+
+  let title = "Vue d&#39;ensemble";
+  if (block) title = sub ? sub.label : block.label;
+
+  header.innerHTML = '<h2>' + (block ? esc(title) : title) + '</h2>' +
+    '<span class="count-badge">' + cnt + ' communication' + (cnt > 1 ? "s" : "") + '</span>' +
+    '<button class="btn btn-primary" id="btnNewCommCtx" style="margin-left:auto;">+ Nouvelle</button>';
+
+  const ctxBtn = document.getElementById("btnNewCommCtx");
+  if (ctxBtn) ctxBtn.addEventListener("click", function() { openCommModal(); });
+}
+
+/* ============================================================
+   FILTER
+   ============================================================ */
+function getFilteredComms() {
+  let list = data.comms.slice();
+  const q = state.searchQuery.toLowerCase().trim();
+  if (q) {
+    return list.filter(function(c) {
+      return c.to.toLowerCase().indexOf(q) !== -1 ||
+             c.subject.toLowerCase().indexOf(q) !== -1 ||
+             c.body.toLowerCase().indexOf(q) !== -1;
+    });
+  }
+  if (state.selectedSubId) {
+    return list.filter(function(c) { return c.sub_id === state.selectedSubId; });
+  }
+  if (state.selectedBlockId) {
+    return list.filter(function(c) { return c.block_id === state.selectedBlockId; });
+  }
+  return list;
+}
+
+/* ============================================================
+   HIGHLIGHT
+   ============================================================ */
+function hl(text, q) {
+  if (!q) return esc(text);
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("(" + escaped + ")", "gi");
+  return esc(text).replace(re, "<mark>$1</mark>");
+}
+
+/* ============================================================
+   CARDS GRID
+   ============================================================ */
+function renderCardsGrid() {
+  const el = document.getElementById("cardsGrid");
+
+  if (state.view === "contacts") {
+    el.className = "contacts-grid";
+    renderContactsGrid(el);
+    return;
+  }
+  el.className = "cards-grid";
+
+  if (state.loading) {
+    el.innerHTML = '<div class="loader-wrap"><div class="spinner"></div><span>Chargement des communications...</span></div>';
+    return;
+  }
+  const q = state.searchQuery.toLowerCase().trim();
+  const list = getFilteredComms();
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-icon">' + (q ? "&#128269;" : "&#128202;") + '</div>' +
+      '<p>' + (q ? "Aucune communication ne correspond." : "Aucune communication enregistree.") + '</p>' +
+      '<small>' + (q ? "Essayez avec d&#39;autres mots-cles." : "Cliquez sur + Nouvelle pour commencer.") + '</small>' +
+      '</div>';
+    return;
+  }
+
+  let html = "";
+  list.forEach(function(comm) {
+    const block = getBlock(comm.block_id);
+    const sub = getSub(comm.sub_id);
+    const color = block ? block.color : "#7A90AE";
+    const idx = blockIndex(block);
+    const preview = comm.body.length > 160 ? comm.body.slice(0, 160) + "..." : comm.body;
+
+    html += '<div class="dash-card" data-id="' + comm.id + '">' +
+      '<div class="dash-card-band" style="background:' + color + ';"></div>' +
+      '<div class="dash-card-body">' +
+      '<div class="dash-card-top">' +
+      '<div class="dash-card-kicker" style="color:' + color + ';">' + idx + ' &mdash; ' + (block ? esc(block.label) : "") + '</div>' +
+      '<div class="dash-card-actions">' +
+      '<button class="btn btn-ghost btn-icon act-copy" data-id="' + comm.id + '" title="Copier">&#128203;</button>' +
+      '<button class="btn btn-ghost btn-icon act-edit" data-id="' + comm.id + '" title="Modifier">&#9998;</button>' +
+      '<button class="btn btn-ghost btn-icon act-del" data-id="' + comm.id + '" title="Supprimer">&#128465;</button>' +
+      '</div></div>' +
+      '<div class="dash-card-subject">' + hl(comm.subject, q) + '</div>' +
+      '<div class="dash-card-to">A : <b>' + hl(comm.to, q) + '</b></div>' +
+      '<div class="dash-card-preview">' + hl(preview, q) + '</div>' +
+      '<div class="dash-card-footer">' +
+      '<div class="dash-card-tags">';
+    if (block) html += '<span class="ctx-tag" style="background:' + color + '20;color:' + color + ';">' + esc(block.label) + '</span>';
+    if (sub) html += '<span class="ctx-tag" style="background:rgba(107,63,160,.12);color:#6B3FA0;">' + esc(sub.label) + '</span>';
+    html += '</div>' +
+      '<span class="dash-card-date">' + fmtDate(comm.created_at) + '</span>' +
+      '</div></div></div>';
+  });
+  el.innerHTML = html;
+
+  el.querySelectorAll(".dash-card").forEach(function(card) {
+    card.addEventListener("click", function(e) {
+      if (e.target.closest("button")) return;
+      openDetailModal(card.dataset.id);
+    });
+  });
+  el.querySelectorAll(".act-edit").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); openCommModal(btn.dataset.id); });
+  });
+  el.querySelectorAll(".act-copy").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); copyComm(btn.dataset.id); });
+  });
+  el.querySelectorAll(".act-del").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); deleteComm(btn.dataset.id); });
+  });
+}
+
+/* ============================================================
+   CONTACTS GRID
+   ============================================================ */
+function contactInitials(name) {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function renderContactRow(role, roleClass, name, email, phone) {
+  const hasData = name || email || phone;
+  let html = '<div class="contact-row ' + roleClass + '">' +
+    '<div class="contact-avatar">' + (hasData ? contactInitials(name) : "?") + '</div>' +
+    '<div class="contact-info">' +
+    '<div class="contact-role">' + role + '</div>' +
+    '<div class="contact-name ' + (name ? "" : "empty") + '">' + (name ? esc(name) : "Non renseigne") + '</div>';
+  if (email) html += '<div class="contact-detail">&#9993; <a href="mailto:' + esc(email) + '">' + esc(email) + '</a></div>';
+  if (phone) html += '<div class="contact-detail">&#9742; <a href="tel:' + esc(phone) + '">' + esc(phone) + '</a></div>';
+  html += '</div></div>';
+  return html;
+}
+
+function renderContactsGrid(el) {
+  if (state.loading) {
+    el.innerHTML = '<div class="loader-wrap"><div class="spinner"></div><span>Chargement du referentiel...</span></div>';
+    return;
+  }
+  const q = state.searchQuery.toLowerCase().trim();
+  let list = data.orgs.slice();
+  if (q) {
+    list = list.filter(function(o) {
+      const haystack = [
+        o.name, o.contact1_name, o.contact1_email, o.contact1_phone,
+        o.contact2_name, o.contact2_email, o.contact2_phone,
+        o.escalation_name, o.escalation_email, o.escalation_phone
+      ].join(" ").toLowerCase();
+      return haystack.indexOf(q) !== -1;
+    });
+  }
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-icon">' + (q ? "&#128269;" : "&#128221;") + '</div>' +
+      '<p>' + (q ? "Aucune organisation ne correspond." : "Aucune organisation enregistree.") + '</p>' +
+      '<small>' + (q ? "Essayez avec d&#39;autres mots-cles." : "Cliquez sur + Nouveau contact pour commencer.") + '</small>' +
+      '</div>';
+    return;
+  }
+
+  let html = "";
+  list.forEach(function(org) {
+    html += '<div class="org-card" data-id="' + org.id + '">' +
+      '<div class="org-card-header">' +
+      '<div class="org-card-icon">&#127970;</div>' +
+      '<div class="org-card-name">' + esc(org.name) + '</div>' +
+      '<div class="org-card-actions">' +
+      '<button class="btn btn-ghost btn-icon org-act-edit" data-id="' + org.id + '" title="Modifier">&#9998;</button>' +
+      '<button class="btn btn-ghost btn-icon org-act-del" data-id="' + org.id + '" title="Supprimer">&#128465;</button>' +
+      '</div></div>' +
+      '<div class="org-card-body">' +
+      renderContactRow("Contact principal 1", "", org.contact1_name, org.contact1_email, org.contact1_phone) +
+      renderContactRow("Contact principal 2", "", org.contact2_name, org.contact2_email, org.contact2_phone) +
+      renderContactRow("Contact d&#39;escalade", "escalation", org.escalation_name, org.escalation_email, org.escalation_phone) +
+      '</div></div>';
+  });
+  el.innerHTML = html;
+
+  el.querySelectorAll(".org-act-edit").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); openOrgModal(btn.dataset.id); });
+  });
+  el.querySelectorAll(".org-act-del").forEach(function(btn) {
+    btn.addEventListener("click", function(e) { e.stopPropagation(); deleteOrg(btn.dataset.id); });
+  });
+}
+
+/* ============================================================
+   HEADER STATS
+   ============================================================ */
+function renderHeaderStats() {
+  const el = document.getElementById("headerStats");
+  el.innerHTML =
+    '<div class="stat-chip"><b>' + data.comms.length + '</b><span>Comms</span></div>' +
+    '<div class="stat-chip"><b>' + data.blocks.length + '</b><span>Blocs</span></div>';
+}
+
+/* ============================================================
+   DETAIL MODAL (full overlay, replaces side panel)
+   ============================================================ */
+function openDetailModal(commId) {
+  state.selectedCommId = commId;
+  const comm = getComm(commId);
+  if (!comm) return;
+  const block = getBlock(comm.block_id);
+  const sub = getSub(comm.sub_id);
+  const color = block ? block.color : "#7A90AE";
+
+  document.getElementById("detailModalBand").style.background = color;
+  document.getElementById("detailModalTitle").textContent = comm.subject;
+
+  let tagsHtml = "";
+  if (block) tagsHtml += '<span class="tag tag-block">' + esc(block.label) + '</span>';
+  if (sub) tagsHtml += '<span class="tag tag-sub">' + esc(sub.label) + '</span>';
+  document.getElementById("detailModalTags").innerHTML = tagsHtml;
+
+  let bodyHtml = '<div class="field-group"><div class="field-label">Destinataires</div><div class="field-value">' + esc(comm.to) + '</div></div>' +
+    '<div class="field-group"><div class="field-label">Corps du message</div><div class="field-value body-text">' + esc(comm.body) + '</div></div>' +
+    '<div class="field-group"><div class="field-label">Cree le</div><div class="field-value">' + fmtDate(comm.created_at) + '</div></div>';
+  if (comm.updated_at) {
+    bodyHtml += '<div class="field-group"><div class="field-label">Modifie le</div><div class="field-value">' + fmtDate(comm.updated_at) + '</div></div>';
+  }
+  document.getElementById("detailModalBody").innerHTML = bodyHtml;
+
+  document.getElementById("detailEdit").onclick = function() { closeDetailModal(); openCommModal(comm.id); };
+  document.getElementById("detailCopy").onclick = function() { copyComm(comm.id); };
+  document.getElementById("detailDel").onclick = function() { deleteComm(comm.id); };
+
+  document.getElementById("detailModalOverlay").classList.add("open");
+}
+function closeDetailModal() {
+  document.getElementById("detailModalOverlay").classList.remove("open");
+  state.selectedCommId = null;
+}
+document.getElementById("detailModalClose").addEventListener("click", closeDetailModal);
+
+/* ============================================================
+   COMM MODAL — Create / Edit
+   ============================================================ */
+function openCommModal(commId) {
+  state.editingCommId = commId || null;
+  const comm = commId ? getComm(commId) : null;
+  document.getElementById("modalCommTitle").textContent = comm ? "Modifier la communication" : "Nouvelle communication";
+
+  ["errBlock", "errSub", "errTo", "errSubject", "errBody"].forEach(function(id) {
+    document.getElementById(id).classList.remove("visible");
+  });
+
+  const selBlock = document.getElementById("formBlockId");
+  let blockOptions = '<option value="">-- Selectionner un bloc --</option>';
+  data.blocks.forEach(function(b) {
+    const sel = comm && comm.block_id === b.id ? "selected" : "";
+    blockOptions += '<option value="' + b.id + '" ' + sel + '>' + esc(b.label) + '</option>';
+  });
+  selBlock.innerHTML = blockOptions;
+
+  function populateSubs(blockId) {
+    const selSub = document.getElementById("formSubId");
+    const blockSubs = data.subs.filter(function(s) { return s.block_id === blockId; });
+    if (!blockId || !blockSubs.length) {
+      selSub.innerHTML = '<option value="">-- Aucun sous-bloc --</option>';
+      selSub.disabled = true;
+      return;
+    }
+    selSub.disabled = false;
+    let opts = '<option value="">-- Selectionner --</option>';
+    blockSubs.forEach(function(s) {
+      const sel = comm && comm.sub_id === s.id ? "selected" : "";
+      opts += '<option value="' + s.id + '" ' + sel + '>' + esc(s.label) + '</option>';
+    });
+    selSub.innerHTML = opts;
+  }
+
+  const initBlock = comm ? comm.block_id : (state.selectedBlockId || "");
+  selBlock.value = initBlock;
+  populateSubs(initBlock);
+  if (state.selectedSubId && !comm) {
+    document.getElementById("formSubId").value = state.selectedSubId;
+  }
+  selBlock.onchange = function() {
+    populateSubs(selBlock.value);
+    document.getElementById("formSubId").value = "";
+  };
+
+  document.getElementById("formTo").value = comm ? comm.to : "";
+  document.getElementById("formSubject").value = comm ? comm.subject : "";
+  document.getElementById("formBody").value = comm ? comm.body : "";
+  openModal("modalComm");
+}
+
+document.getElementById("closeModalComm").onclick = function() { closeModal("modalComm"); };
+document.getElementById("cancelModalComm").onclick = function() { closeModal("modalComm"); };
+
+document.getElementById("saveComm").onclick = async function() {
+  const blockId = document.getElementById("formBlockId").value;
+  const subId = document.getElementById("formSubId").value;
+  const to = document.getElementById("formTo").value.trim();
+  const subject = document.getElementById("formSubject").value.trim();
+  const body = document.getElementById("formBody").value.trim();
+
+  let valid = true;
+  function setErr(id, isErr) {
+    const el = document.getElementById(id);
+    if (isErr) { el.classList.add("visible"); valid = false; }
+    else el.classList.remove("visible");
+  }
+  setErr("errBlock", !blockId);
+  setErr("errSub", !subId);
+  setErr("errTo", !to);
+  setErr("errSubject", !subject);
+  setErr("errBody", !body);
+  if (!valid) return;
+
+  const btn = document.getElementById("saveComm");
+  btn.disabled = true;
+  btn.textContent = "Enregistrement...";
+  setSyncStatus("syncing", "Sauvegarde...");
+
+  try {
+    if (state.editingCommId) {
+      const updated = await sbPatch("comms", state.editingCommId, {
+        block_id: blockId, sub_id: subId, to: to, subject: subject, body: body, updated_at: Date.now()
+      });
+      const idx = data.comms.findIndex(function(c) { return c.id === state.editingCommId; });
+      if (idx >= 0) data.comms[idx] = updated[0];
+      toast("Communication mise a jour.", "success");
+    } else {
+      const created = await sbPost("comms", {
+        id: uid(), block_id: blockId, sub_id: subId, to: to, subject: subject, body: body, created_at: Date.now()
+      });
+      data.comms.unshift(created[0]);
+      state.selectedBlockId = blockId;
+      state.selectedSubId = subId;
+      toast("Communication enregistree.", "success");
+    }
+    setSyncStatus("ok", "Synchronise");
+    closeModal("modalComm");
+    renderAll();
+  } catch (e) {
+    setSyncStatus("err", "Erreur");
+    toast("Erreur lors de l'enregistrement.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Enregistrer";
+  }
+};
+
+/* ============================================================
+   COPY
+   ============================================================ */
+async function copyComm(commId) {
+  const comm = getComm(commId);
+  if (!comm) return;
+  const text = "A : " + comm.to + "\nObjet : " + comm.subject + "\n\n" + comm.body;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Contenu copie dans le presse-papiers.", "success");
+  } catch (e) {
+    toast("Impossible de copier.", "error");
+  }
+}
+
+/* ============================================================
+   DELETE COMM
+   ============================================================ */
+async function deleteComm(commId) {
+  const comm = getComm(commId);
+  if (!comm) return;
+  const ok = await showConfirm("Supprimer la communication", 'Supprimer "' + comm.subject + '" ? Cette action est irreversible.');
+  if (!ok) return;
+  setSyncStatus("syncing", "Suppression...");
+  try {
+    await sbDelete("comms", "id=eq." + commId);
+    data.comms = data.comms.filter(function(c) { return c.id !== commId; });
+    if (state.selectedCommId === commId) { state.selectedCommId = null; closeDetailModal(); }
+    setSyncStatus("ok", "Synchronise");
+    toast("Communication supprimee.", "info");
+    renderAll();
+  } catch (e) {
+    setSyncStatus("err", "Erreur");
+    toast("Erreur lors de la suppression.", "error");
+  }
+}
+
+/* ============================================================
+   BLOCKS MANAGER MODAL
+   ============================================================ */
+function openBlocksModal() {
+  renderBlocksModal();
+  openModal("modalBlocks");
+}
+
+function renderBlocksModal() {
+  const body = document.getElementById("modalBlocksBody");
+
+  let listHtml = "";
+  data.blocks.forEach(function(block) {
+    const blockSubs = data.subs.filter(function(s) { return s.block_id === block.id; });
+
+    let subsHtml = "";
+    blockSubs.forEach(function(sub) {
+      subsHtml += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">' +
+        '<div style="width:3px;height:14px;border-radius:2px;background:' + block.color + ';flex-shrink:0;"></div>' +
+        '<input class="form-input sub-label-inp" data-sid="' + sub.id + '" value="' + esc(sub.label) + '" style="flex:1;padding:5px 9px;font-size:12px;" />' +
+        '<button class="btn btn-danger btn-icon del-sub" data-sid="' + sub.id + '" style="padding:5px 8px;font-size:11px;">&times;</button>' +
+        '</div>';
+    });
+
+    listHtml += '<div style="margin-bottom:14px;background:rgba(255,255,255,.5);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;">' +
+      '<div style="display:flex;align-items:center;gap:9px;padding:10px 14px;background:rgba(255,255,255,.5);">' +
+      '<div style="width:9px;height:9px;border-radius:50%;background:' + block.color + ';flex-shrink:0;"></div>' +
+      '<input class="form-input blk-label-inp" data-bid="' + block.id + '" value="' + esc(block.label) + '" style="flex:1;padding:5px 9px;font-weight:600;font-size:12px;" />' +
+      '<button class="btn btn-danger btn-icon del-block" data-bid="' + block.id + '" style="padding:5px 8px;font-size:11px;">&#128465;</button>' +
+      '</div>' +
+      '<div style="padding:10px 14px;">' +
+      '<div style="font-size:10px;color:var(--text-muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em;">Sous-blocs</div>' +
+      subsHtml +
+      '<div style="display:flex;gap:7px;margin-top:7px;">' +
+      '<input class="form-input new-sub-inp" data-bid="' + block.id + '" placeholder="Nouveau sous-bloc..." style="flex:1;font-size:12px;" />' +
+      '<button class="btn btn-secondary add-sub-btn" data-bid="' + block.id + '" style="font-size:11px;padding:6px 12px;">+</button>' +
+      '</div></div></div>';
+  });
+
+  if (!listHtml) {
+    listHtml = '<div style="color:var(--text-muted);font-size:12px;padding:8px 0;">Aucun bloc. Creez-en un ci-dessous.</div>';
+  }
+
+  body.innerHTML = '<div>' + listHtml +
+    '<div style="display:flex;gap:8px;margin-top:14px;">' +
+    '<input class="form-input" id="newBlockLabel" placeholder="Nom du nouveau bloc..." style="flex:1;" />' +
+    '<button class="btn btn-primary" id="addBlockBtn">Ajouter</button>' +
+    '</div></div>';
+
+  document.getElementById("addBlockBtn").onclick = async function() {
+    const label = document.getElementById("newBlockLabel").value.trim();
+    if (!label) return;
+    setSyncStatus("syncing", "Sauvegarde...");
+    try {
+      const res = await sbPost("blocks", { id: uid(), label: label, color: nextColor(), position: data.blocks.length });
+      data.blocks.push(res[0]);
+      setSyncStatus("ok", "Synchronise");
+      renderBlocksModal();
+      renderAll();
+    } catch (e) {
+      setSyncStatus("err", "Erreur");
+      toast("Erreur lors de la creation du bloc.", "error");
+    }
+  };
+  document.getElementById("newBlockLabel").onkeydown = function(e) {
+    if (e.key === "Enter") document.getElementById("addBlockBtn").click();
+  };
+
+  body.querySelectorAll(".blk-label-inp").forEach(function(inp) {
+    inp.onchange = async function() {
+      try {
+        await sbPatch("blocks", inp.dataset.bid, { label: inp.value.trim() });
+        const b = getBlock(inp.dataset.bid);
+        if (b) b.label = inp.value.trim();
+        renderAll();
+      } catch (e) {
+        toast("Erreur renommage bloc.", "error");
+      }
+    };
+  });
+
+  body.querySelectorAll(".sub-label-inp").forEach(function(inp) {
+    inp.onchange = async function() {
+      try {
+        await sbPatch("subs", inp.dataset.sid, { label: inp.value.trim() });
+        const s = getSub(inp.dataset.sid);
+        if (s) s.label = inp.value.trim();
+        renderAll();
+      } catch (e) {
+        toast("Erreur renommage sous-bloc.", "error");
+      }
+    };
+  });
+
+  body.querySelectorAll(".del-block").forEach(function(btn) {
+    btn.onclick = async function() {
+      const b = getBlock(btn.dataset.bid);
+      const cnt = data.comms.filter(function(c) { return c.block_id === btn.dataset.bid; }).length;
+      const msg = 'Supprimer "' + b.label + '"' + (cnt ? (" et ses " + cnt + " communication(s)") : "") + " ?";
+      const ok = await showConfirm("Supprimer le bloc", msg);
+      if (!ok) return;
+      setSyncStatus("syncing", "Suppression...");
+      try {
+        await sbDelete("blocks", "id=eq." + btn.dataset.bid);
+        data.blocks = data.blocks.filter(function(x) { return x.id !== btn.dataset.bid; });
+        data.subs = data.subs.filter(function(x) { return x.block_id !== btn.dataset.bid; });
+        data.comms = data.comms.filter(function(x) { return x.block_id !== btn.dataset.bid; });
+        if (state.selectedBlockId === btn.dataset.bid) { state.selectedBlockId = null; state.selectedSubId = null; }
+        setSyncStatus("ok", "Synchronise");
+        renderBlocksModal();
+        renderAll();
+      } catch (e) {
+        setSyncStatus("err", "Erreur");
+        toast("Erreur suppression bloc.", "error");
+      }
+    };
+  });
+
+  body.querySelectorAll(".del-sub").forEach(function(btn) {
+    btn.onclick = async function() {
+      const s = getSub(btn.dataset.sid);
+      const cnt = data.comms.filter(function(c) { return c.sub_id === btn.dataset.sid; }).length;
+      const msg = 'Supprimer "' + s.label + '"' + (cnt ? (" et ses " + cnt + " communication(s)") : "") + " ?";
+      const ok = await showConfirm("Supprimer le sous-bloc", msg);
+      if (!ok) return;
+      setSyncStatus("syncing", "Suppression...");
+      try {
+        await sbDelete("subs", "id=eq." + btn.dataset.sid);
+        data.subs = data.subs.filter(function(x) { return x.id !== btn.dataset.sid; });
+        data.comms = data.comms.filter(function(x) { return x.sub_id !== btn.dataset.sid; });
+        if (state.selectedSubId === btn.dataset.sid) state.selectedSubId = null;
+        setSyncStatus("ok", "Synchronise");
+        renderBlocksModal();
+        renderAll();
+      } catch (e) {
+        setSyncStatus("err", "Erreur");
+        toast("Erreur suppression sous-bloc.", "error");
+      }
+    };
+  });
+
+  body.querySelectorAll(".add-sub-btn").forEach(function(btn) {
+    const inp = body.querySelector('.new-sub-inp[data-bid="' + btn.dataset.bid + '"]');
+    btn.onclick = async function() {
+      const label = inp.value.trim();
+      if (!label) return;
+      setSyncStatus("syncing", "Sauvegarde...");
+      try {
+        const blockSubs = data.subs.filter(function(s) { return s.block_id === btn.dataset.bid; });
+        const res = await sbPost("subs", { id: uid(), block_id: btn.dataset.bid, label: label, position: blockSubs.length });
+        data.subs.push(res[0]);
+        inp.value = "";
+        setSyncStatus("ok", "Synchronise");
+        renderBlocksModal();
+        renderAll();
+      } catch (e) {
+        setSyncStatus("err", "Erreur");
+        toast("Erreur creation sous-bloc.", "error");
+      }
+    };
+    inp.onkeydown = function(e) {
+      if (e.key === "Enter") btn.click();
+    };
+  });
+}
+
+document.getElementById("closeModalBlocks").onclick = function() { closeModal("modalBlocks"); };
+document.getElementById("closeModalBlocksFooter").onclick = function() { closeModal("modalBlocks"); };
+
+/* ============================================================
+   ORGANIZATION MODAL — Create / Edit (Contacts referentiel)
+   ============================================================ */
+function openOrgModal(orgId) {
+  state.editingOrgId = orgId || null;
+  const org = orgId ? getOrg(orgId) : null;
+  document.getElementById("modalOrgTitle").textContent = org ? "Modifier l'organisation" : "Nouvelle organisation";
+
+  document.getElementById("errOrgName").classList.remove("visible");
+
+  document.getElementById("formOrgName").value = org ? org.name : "";
+  document.getElementById("formC1Name").value = org ? (org.contact1_name || "") : "";
+  document.getElementById("formC1Email").value = org ? (org.contact1_email || "") : "";
+  document.getElementById("formC1Phone").value = org ? (org.contact1_phone || "") : "";
+  document.getElementById("formC2Name").value = org ? (org.contact2_name || "") : "";
+  document.getElementById("formC2Email").value = org ? (org.contact2_email || "") : "";
+  document.getElementById("formC2Phone").value = org ? (org.contact2_phone || "") : "";
+  document.getElementById("formEscName").value = org ? (org.escalation_name || "") : "";
+  document.getElementById("formEscEmail").value = org ? (org.escalation_email || "") : "";
+  document.getElementById("formEscPhone").value = org ? (org.escalation_phone || "") : "";
+
+  openModal("modalOrg");
+}
+
+document.getElementById("closeModalOrg").onclick = function() { closeModal("modalOrg"); };
+document.getElementById("cancelModalOrg").onclick = function() { closeModal("modalOrg"); };
+
+document.getElementById("saveOrg").onclick = async function() {
+  const name = document.getElementById("formOrgName").value.trim();
+  if (!name) {
+    document.getElementById("errOrgName").classList.add("visible");
+    return;
+  }
+  document.getElementById("errOrgName").classList.remove("visible");
+
+  const payload = {
+    name: name,
+    contact1_name: document.getElementById("formC1Name").value.trim(),
+    contact1_email: document.getElementById("formC1Email").value.trim(),
+    contact1_phone: document.getElementById("formC1Phone").value.trim(),
+    contact2_name: document.getElementById("formC2Name").value.trim(),
+    contact2_email: document.getElementById("formC2Email").value.trim(),
+    contact2_phone: document.getElementById("formC2Phone").value.trim(),
+    escalation_name: document.getElementById("formEscName").value.trim(),
+    escalation_email: document.getElementById("formEscEmail").value.trim(),
+    escalation_phone: document.getElementById("formEscPhone").value.trim()
+  };
+
+  const btn = document.getElementById("saveOrg");
+  btn.disabled = true;
+  btn.textContent = "Enregistrement...";
+  setSyncStatus("syncing", "Sauvegarde...");
+
+  try {
+    if (state.editingOrgId) {
+      const updated = await sbPatch("organizations", state.editingOrgId, payload);
+      const idx = data.orgs.findIndex(function(o) { return o.id === state.editingOrgId; });
+      if (idx >= 0) data.orgs[idx] = updated[0];
+      toast("Organisation mise a jour.", "success");
+    } else {
+      payload.id = uid();
+      payload.position = data.orgs.length;
+      const created = await sbPost("organizations", payload);
+      data.orgs.push(created[0]);
+      toast("Organisation enregistree.", "success");
+    }
+    setSyncStatus("ok", "Synchronise");
+    closeModal("modalOrg");
+    renderAll();
+  } catch (e) {
+    setSyncStatus("err", "Erreur");
+    toast("Erreur lors de l'enregistrement.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Enregistrer";
+  }
+};
+
+async function deleteOrg(orgId) {
+  const org = getOrg(orgId);
+  if (!org) return;
+  const ok = await showConfirm("Supprimer l'organisation", 'Supprimer "' + org.name + '" et tous ses contacts ? Cette action est irreversible.');
+  if (!ok) return;
+  setSyncStatus("syncing", "Suppression...");
+  try {
+    await sbDelete("organizations", "id=eq." + orgId);
+    data.orgs = data.orgs.filter(function(o) { return o.id !== orgId; });
+    setSyncStatus("ok", "Synchronise");
+    toast("Organisation supprimee.", "info");
+    renderAll();
+  } catch (e) {
+    setSyncStatus("err", "Erreur");
+    toast("Erreur lors de la suppression.", "error");
+  }
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+document.getElementById("searchInput").addEventListener("input", function(e) {
+  state.searchQuery = e.target.value;
+  document.getElementById("searchClear").classList.toggle("visible", !!state.searchQuery);
+  renderAll();
+});
+document.getElementById("searchClear").addEventListener("click", function() {
+  document.getElementById("searchInput").value = "";
+  state.searchQuery = "";
+  document.getElementById("searchClear").classList.remove("visible");
+  renderAll();
+  document.getElementById("searchInput").focus();
+});
+
+document.getElementById("btnNewComm").onclick = function() {
+  if (state.view === "contacts") openOrgModal();
+  else openCommModal();
+};
+
+/* ============================================================
+   RENDER ALL
+   ============================================================ */
+function renderAll() {
+  renderHeaderStats();
+  renderTabsBar();
+  renderSubtabsBar();
+  renderDashboardHeader();
+  renderCardsGrid();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderAll();
+loadAll();
+
+</script>
+</body>
+</html>
